@@ -1,16 +1,11 @@
 # EYYA server migration
 
-Migration export is in progress. This repository is not yet a complete backup.
+Экспорт выполнен 14 октября 2026 года. В `server/opt` опубликован снимок исходников основных приложений рабочего VPS. Рабочие секреты заменены заглушками; данные, ключи, письма и зависимости в публичный репозиторий не включены.
 
-Application source and restoration instructions belong here. Databases,
-mailboxes, private keys, credentials, sessions, and production environment files
-are exported separately to a private local archive. Do not retire the original
-server until that archive is downloaded and verified.
+Полная приватная копия сохранена на компьютере владельца: `eyya-full-backup-20261014.tar` (14 445 875 200 байт). Она содержит оригинальные исходники и секреты, согласованную копию данных Docker, почту, сертификаты, конфигурации и четыре логических дампа баз.
 
-`scripts/start-transfer.py` starts a temporary outbound Cloudflare QUIC transport
-to the existing SSH service for the migration. It preserves SSH authentication
-and must be stopped when the export is finished.
+Проверены совпадение SHA256 с сервером, полное чтение сжатой файловой копии, наличие каталогов n8n/Mailcow/ключей/сертификатов и CRC/отметки завершения четырёх SQL-дампов. Сервисы старого VPS после копирования запущены. Восстановление на новом VPS пока не проверено; старый VPS сохраняется до проверки переноса.
 
-## Снимок исходников
+См. [RESTORE.md](RESTORE.md).
 
-Добавлены исходники основных приложений из `/opt` рабочего сервера; см. [RESTORE.md](RESTORE.md). Из публичной копии удалены обнаруженные рабочие секреты, данные и зависимости. Полная приватная копия готовится отдельно. Восстановление на новом сервере пока не проверено.
+`scripts/start-transfer.py` создаёт временный исходящий Cloudflare QUIC-канал к существующему SSH. Авторизация SSH сохраняется. Канал следует закрывать после использования.
