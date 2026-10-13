@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id                  Int             @id @default(autoincrement())
+  externalId          String          @unique
+  accountId           String?
+  customerEmail       String?
+  customerPhone       String?
+  amountKop           Int
+  currency            String          @default("RUB")
+  paymentStatus       String          @default("pending")
+  skladDispatchId     Int?
+  deliveryTrackNumber String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  items               OrderItem[]
+  shipments           Shipment[]
+  receipts            FiscalReceipt[]
+
+  @@index([skladDispatchId])
+}
+
+model OrderItem {
+  id                   Int        @id @default(autoincrement())
+  orderId              Int
+  ffProductId          Int?
+  clientCode           String
+  name                 String
+  quantity             Int
+  unitPriceKop         Int
+  amountKop            Int
+  vat                  Int?
+  isMarked             Boolean    @default(false)
+  isActive             Boolean    @default(true)
+  objectCodeBeforeMark Int        @default(32)
+  objectCodeWithMark   Int        @default(33)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  order                Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  markCodes            MarkCode[]
+
+  @@unique([orderId, clientCode])
+  @@index([orderId])
+  @@index([clientCode])
+}
+
+model Shipment {
+  id                   Int               @id @default(autoincrement())
+  orderId              Int?
+  skladDispatchId      Int               @unique
+  shopId               Int?
+  skladId              Int?
+  status               String
+  cdekStatus           String?
+  cdekDeliveryStatus   String?
+  dateCreated          String?
+  dateAtWork           String?
+  dateAtShipped        String?
+  dateClosed           String?
+  trackNumber          String?
+  cdekUuid             String?
+  cdekNumber           String?
+  cdekOrderNumber      String?
+  cdekRecipientName    String?
+  cdekRecipientPhone   String?
+  cdekRecipientEmail   String?
+  rawCdekOrderJson     String?
+  rawSkladDispatchJson String?
+  rawCdekDetailJson    String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  order                Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  products             ShipmentProduct[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([cdekDeliveryStatus])
+  @@index([trackNumber])
+  @@index([cdekNumber])
+  @@index([cdekOrderNumber])
+  @@index([cdekRecipientPhone])
+}
+
+model ShipmentProduct {
+  id          Int        @id @default(autoincrement())
+  shipmentId  Int
+  ffProductId Int?
+  clientCode  String
+  name        String
+  planQty     Int
+  factQty     Int
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  shipment    Shipment   @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  markCodes   MarkCode[]
+
+  @@unique([shipmentId, clientCode])
+  @@index([shipmentId])
+  @@index([clientCode])
+}
+
+model MarkCode {
+  id                  Int             @id @default(autoincrement())
+  shipmentProductId   Int
+  orderItemId         Int?
+  code                String
+  validationStatus    String          @default("not_checked")
+  validationMessage   String?
+  rawValidationJson   String?
+  usedInSecondReceipt Boolean         @default(false)
+  isActive            Boolean         @default(true)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  shipmentProduct     ShipmentProduct @relation(fields: [shipmentProductId], references: [id], onDelete: Cascade)
+  orderItem           OrderItem?      @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+
+  @@unique([shipmentProductId, code])
+  @@index([orderItemId])
+}
+
+model FiscalReceipt {
+  id            Int      @id @default(autoincrement())
+  orderId       Int?
+  kind          String
+  cloudKassirId String?
+  type          String   @default("Income")
+  status        String   @default("created")
+  requestId     String   @unique
+  invoiceId     String?
+  payloadJson   String
+  responseJson  String?
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  order         Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([kind])
+  @@index([status])
+}
+
+model CloudPaymentTransaction {
+  id            Int      @id @default(autoincrement())
+  transactionId String   @unique
+  invoiceId     String?
+  accountId     String?
+  email         String?
+  amountKop     Int?
+  currency      String?
+  operationType String?
+  status        String?
+  statusCode    Int?
+  reason        String?
+  reasonCode    Int?
+  cardFirstSix  String?
+  cardLastFour  String?
+  cardType      String?
+  paymentDate   String?
+  rawJson       String
+  importedAt    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([accountId])
+  @@index([status])
+  @@index([paymentDate])
+}
+
+model CloudKassirReceipt {
+  id             Int                      @id @default(autoincrement())
+  cloudKassirId  String                   @unique
+  invoiceId      String?
+  accountId      String?
+  transactionId  String?
+  type           String?
+  status         String                   @default("imported")
+  amountKop      Int?
+  dateTime       String?
+  documentNumber String?
+  fiscalSign     String?
+  deviceNumber   String?
+  regNumber      String?
+  fiscalNumber   String?
+  inn            String?
+  ofd            String?
+  url            String?
+  qrCodeUrl      String?
+  source         String
+  rawJson        String
+  importedAt     DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  items          CloudKassirReceiptItem[]
+
+  @@index([invoiceId])
+  @@index([accountId])
+  @@index([transactionId])
+  @@index([status])
+  @@index([dateTime])
+}
+
+model CloudKassirReceiptItem {
+  id          Int                @id @default(autoincrement())
+  receiptId   Int
+  label       String?
+  priceKop    Int?
+  quantity    String?
+  amountKop   Int?
+  vat         Int?
+  method      Int?
+  object      Int?
+  rawMarkCode String?
+  rawJson     String
+  createdAt   DateTime           @default(now())
+  receipt     CloudKassirReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+
+  @@index([receiptId])
+}
+
+model ApiEvent {
+  id          Int      @id @default(autoincrement())
+  source      String
+  eventType   String
+  externalId  String?
+  payloadJson String
+  createdAt   DateTime @default(now())
+
+  @@index([source])
+  @@index([eventType])
+  @@index([externalId])
+}
+
+model FfScanCursor {
+  id                   Int       @id @default(autoincrement())
+  name                 String    @unique
+  nextSkladDispatchId  Int       @default(0)
+  lastScannedId        Int?
+  lastFoundId          Int?
+  lastStartedAt        DateTime?
+  lastFinishedAt       DateTime?
+  lastError            String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}

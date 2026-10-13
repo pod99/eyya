@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Дашборд EYYA</title>
+    <link rel="stylesheet" href="styles.css?v=2026100501" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+            <img class="brand-logo" src="assets/eyya-logo.png" alt="EYYA" />
+        </div>
+        <nav class="tabs" aria-label="Разделы">
+          <span class="tabs-label">Дашборд по Битрикс24</span>
+          <button class="tab active" type="button" data-dashboard-tab="bitrix" data-mode="client">Дашборд клиентского отдела</button>
+          <button class="tab" type="button" data-dashboard-tab="bitrix" data-mode="marketing">Дашборд по маркетингу</button>
+          <span class="tabs-label">Логистика</span>
+          <button class="tab" type="button" data-dashboard-tab="cdek">Доставка СДЭК</button>
+        </nav>
+        <form id="filters" class="filters">
+          <label>Дата начала с<input name="start" type="date" /></label>
+          <label>Дата начала по<input name="end" type="date" /></label>
+          <label>Шаг
+            <select name="granularity">
+              <option value="day" selected>День</option>
+              <option value="week">Неделя</option>
+              <option value="month">Месяц</option>
+            </select>
+          </label>
+          <label>Источник<select name="source"></select></label>
+          <label>Originator<select name="originator"></select></label>
+          <label>UTM source<select name="utmSource"></select></label>
+          <label>UTM campaign<select name="utmCampaign"></select></label>
+          <label>Воронка<select name="categoryId"></select></label>
+          <label>Менеджер<select name="assignedBy"></select></label>
+          <button class="apply" type="submit">Обновить</button>
+        </form>
+      </aside>
+      <main>
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div>
+          <strong>Загружаем данные</strong>
+          <span>Собираем метрики из Bitrix по дате начала</span>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="title">Дашборд клиентского отдела</h1>
+          </div>
+          <div class="sync">
+            <span></span>
+            <time id="generatedAt"></time>
+          </div>
+        </header>
+
+        <section class="dashboard-panel active" data-dashboard-panel="bitrix">
+          <section class="ops-health" id="opsHealth" aria-live="polite"></section>
+          <section class="kpis" id="kpis"></section>
+
+          <section class="grid">
+            <article class="panel wide">
+              <header><h2>Динамика</h2></header>
+              <canvas id="trendChart" height="120"></canvas>
+            </article>
+            <article class="panel wide">
+              <header><h2>Таблица по периодам</h2></header>
+              <div class="table-wrap"><table id="periodTable"></table></div>
+            </article>
+            <article class="panel">
+              <header><h2>Продажи по источникам</h2></header>
+              <canvas id="sourceChart" height="220"></canvas>
+              <div class="table-wrap compact"><table id="sourceTable"></table></div>
+            </article>
+            <article class="panel">
+              <header><h2>Воронка</h2></header>
+              <div id="funnel" class="funnel"></div>
+              <div class="table-wrap compact"><table id="funnelTable"></table></div>
+            </article>
+            <article class="panel">
+              <header><h2>Сопровождение</h2></header>
+              <div class="table-wrap compact"><table id="linkedDealsTable"></table></div>
+              <canvas id="retentionChart" height="190"></canvas>
+              <div class="table-wrap compact"><table id="retentionTable"></table></div>
+            </article>
+            <article class="panel">
+              <header><h2>Менеджеры</h2></header>
+              <div id="managers" class="rows"></div>
+              <div class="table-wrap compact"><table id="managerTable"></table></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="dashboard-panel" data-dashboard-panel="cdek">
+          <section class="grid">
+            <article class="panel wide">
+              <header><h2>Доставка СДЭК</h2></header>
+              <div class="track-tools" aria-label="Управление трек-номерами">
+                <label>
+                  <span>Удалить трек</span>
+                  <input id="deleteTrackInput" type="text" inputmode="numeric" placeholder="102..." autocomplete="off">
+                  <button id="deleteTrackButton" type="button">Удалить</button>
+                </label>
+                <label>
+                  <span>Добавить трек</span>
+                  <input id="addTrackInput" type="text" inputmode="numeric" placeholder="102..." autocomplete="off">
+                  <button id="addTrackButton" type="button">Загрузить из CDEK</button>
+                </label>
+                <button id="exportCdekButton" class="track-export-button" type="button">Выгрузить Excel</button>
+                <p id="trackToolStatus" class="track-tool-status"></p>
+              </div>
+              <div id="cdekSummary" class="delivery-summary"></div>
+              <div id="cdekMainInsights" class="delivery-insights"></div>
+              <div class="table-wrap compact"><table id="cdekFinanceTable"></table></div>
+              <div class="table-wrap compact"><table id="cdekStatusTable"></table></div>
+              <div class="table-wrap compact"><table id="cdekItemTable"></table></div>
+              <div class="table-wrap"><table id="cdekTable"></table></div>
+              <div class="table-wrap"><table id="cdekRepeatTable"></table></div>
+              <div class="table-wrap"><table id="cdekRepeatReturnedTable"></table></div>
+              <h3 class="subsection-title">Бесплатные / неклиентские отправления</h3>
+              <div id="cdekFreeSummary" class="delivery-summary compact-summary"></div>
+              <div id="cdekFreeInsights" class="delivery-insights"></div>
+              <div class="table-wrap compact"><table id="cdekFreeFinanceTable"></table></div>
+              <div class="table-wrap compact"><table id="cdekFreeStatusTable"></table></div>
+              <div class="table-wrap"><table id="cdekFreeTable"></table></div>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+    <script src="vendor/chart.umd.min.js"></script>
+    <script src="app.js?v=2026100501"></script>
+  </body>
+</html>

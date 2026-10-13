@@ -1,0 +1,38 @@
+{
+  "name": "cloudkassir-ff-integration",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/src/server.js",
+    "worker": "tsx src/worker.ts",
+    "worker:prod": "node dist/src/worker.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "seed:example": "tsx scripts/seed-example.ts",
+    "import:cloudkassir:transactions": "tsx scripts/import-cloudkassir-transactions.ts",
+    "import:cloudkassir:receipts": "tsx scripts/import-cloudkassir-receipts.ts",
+    "import:cloudkassir:receipts-period": "tsx scripts/import-cloudkassir-receipts-period.ts",
+    "import:cloudkassir:receipts-csv": "tsx scripts/import-cloudkassir-receipts-csv.ts",
+    "reconstruct:orders": "tsx scripts/reconstruct-orders.ts",
+    "cloudkassir:snapshot": "tsx scripts/cloudkassir-snapshot.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@prisma/client": "^6.1.0",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.1",
+    "pino": "^9.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "prisma": "^6.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

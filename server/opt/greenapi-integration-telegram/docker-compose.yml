@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-safy}
+      - POSTGRES_USER=${POSTGRES_USER:-safy}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-safy-postgres-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-safy} -d $${POSTGRES_DB:-safy}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  adapter:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://safy:safy-postgres-change-me@postgres:5432/safy}
+      - BITRIX24_CLIENT_ID=${BITRIX24_CLIENT_ID}
+      - BITRIX24_CLIENT_SECRET=${BITRIX24_CLIENT_SECRET}
+      - APP_URL=${APP_URL}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - CONNECTOR_ID=${CONNECTOR_ID}
+      - CONNECTOR_NAME=${CONNECTOR_NAME}
+      - PROXY_HOST=${PROXY_HOST:-xray-proxy}
+      - PROXY_PORT=${PROXY_PORT:-10808}
+      - PRIMARY_CONNECTOR_ID=${PRIMARY_CONNECTOR_ID:-tg_6}
+      - PRIMARY_BITRIX_LINE_ID=${PRIMARY_BITRIX_LINE_ID:-30}
+      - CREATE_LEAD_BY_DEFAULT=${CREATE_LEAD_BY_DEFAULT:-true}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - TRUSTED_PROXY_IPS=${TRUSTED_PROXY_IPS:-127.0.0.1,::1}
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-14}
+      - MIN_BACKUP_INTERVAL_SECONDS=${MIN_BACKUP_INTERVAL_SECONDS:-21600}
+      - HEALTH_CHECK_INTERVAL_SECONDS=${HEALTH_CHECK_INTERVAL_SECONDS:-300}
+      - HEALTH_ALERT_WEBHOOK_URL=${HEALTH_ALERT_WEBHOOK_URL:-}
+      - HEALTH_ALERT_TELEGRAM_BOT_TOKEN=${HEALTH_ALERT_TELEGRAM_BOT_TOKEN:-}
+      - HEALTH_ALERT_TELEGRAM_CHAT_ID=${HEALTH_ALERT_TELEGRAM_CHAT_ID:-}
+      - BITRIX_WEBHOOK_HMAC_REQUIRED=${BITRIX_WEBHOOK_HMAC_REQUIRED:-true}
+      - BITRIX_WEBHOOK_TOKEN=${BITRIX_WEBHOOK_TOKEN:-}
+      - INBOUND_WEBHOOK_TOKEN=${INBOUND_WEBHOOK_TOKEN:-}
+      - ALLOWED_BITRIX_DOMAIN_SUFFIXES=${ALLOWED_BITRIX_DOMAIN_SUFFIXES:-bitrix24.ru,bitrix24.com,bitrix24.eu,bitrix24.tech}
+      - MAX_PUBLIC_REQUEST_BYTES=${MAX_PUBLIC_REQUEST_BYTES:-2097152}
+      - MAX_WIDGET_REQUEST_BYTES=${MAX_WIDGET_REQUEST_BYTES:-188743680}
+      - MEDIA_URL_SECRET=${MEDIA_URL_SECRET:-}
+      - MEDIA_URL_TTL_SECONDS=${MEDIA_URL_TTL_SECONDS:-86400}
+      - MEDIA_RETENTION_SECONDS=${MEDIA_RETENTION_SECONDS:-7776000}
+      - MEDIA_CLEANUP_INTERVAL_SECONDS=${MEDIA_CLEANUP_INTERVAL_SECONDS:-86400}
+      - MAX_TELEGRAM_MEDIA_BYTES=${MAX_TELEGRAM_MEDIA_BYTES:-1073741824}
+      - PENDING_LOGIN_TTL_SECONDS=${PENDING_LOGIN_TTL_SECONDS:-600}
+      - CACHE_TTL_SECONDS=${CACHE_TTL_SECONDS:-3600}
+      - CACHE_MAX_SIZE=${CACHE_MAX_SIZE:-1000}
+      - REAL_OPERATOR_NAME=${REAL_OPERATOR_NAME:-Умей Смеяться}
+      - UNKNOWN_BITRIX_OPERATOR_NAME=${UNKNOWN_BITRIX_OPERATOR_NAME:-Менеджер службы заботы Виктория}
+      - SERVICE_OPERATOR_NAMES=${SERVICE_OPERATOR_NAMES:-SAFY Test Operator,Bitrix widget,SAFY Telegram,eyyabeauty,Telegram @eyyabeauty}
+      - FALLBACK_OPERATOR_NAMES=${FALLBACK_OPERATOR_NAMES:-Bitrix24 / Open Line,Bitrix operator}
+      - TEST_TEXT_PREFIXES=${TEST_TEXT_PREFIXES:-safy synthetic,safy live,safy test,poller self-test}
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

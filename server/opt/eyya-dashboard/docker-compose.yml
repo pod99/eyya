@@ -1,0 +1,40 @@
+services:
+  dashboard:
+    build: .
+    container_name: eyya-dashboard
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      PORT: ${PORT:-8010}
+      PGHOST: ${PGHOST:-127.0.0.1}
+      PGPORT: ${PGPORT:-5433}
+      PGDATABASE: ${PGDATABASE:-bitrix_export}
+      PGUSER: ${PGUSER:-bitrix}
+      PGPASSWORD: ${PGPASSWORD}
+      CDEK_CLIENT_ID: ${CDEK_CLIENT_ID}
+      CDEK_CLIENT_SECRET: ${CDEK_CLIENT_SECRET}
+      DASHBOARD_USER: ${DASHBOARD_USER}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    volumes:
+      - /var/log/eyya-business-healthcheck.log:/var/log/eyya-business-healthcheck.log:ro
+
+  cdek-combo-normalizer:
+    build: .
+    container_name: eyya-cdek-combo-normalizer
+    restart: unless-stopped
+    network_mode: host
+    command: node scripts/normalize-cdek-combos.js --daemon
+    env_file:
+      - .env
+    environment:
+      PGHOST: ${PGHOST:-127.0.0.1}
+      PGPORT: ${PGPORT:-5433}
+      PGDATABASE: ${PGDATABASE:-bitrix_export}
+      PGUSER: ${PGUSER:-bitrix}
+      PGPASSWORD: ${PGPASSWORD}
+      CDEK_CLIENT_ID: ${CDEK_CLIENT_ID}
+      CDEK_CLIENT_SECRET: ${CDEK_CLIENT_SECRET}
+      CDEK_COMBO_LOOKBACK_DAYS: ${CDEK_COMBO_LOOKBACK_DAYS:-14}
+      CDEK_COMBO_EXO_PRICE: ${CDEK_COMBO_EXO_PRICE:-5290}

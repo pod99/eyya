@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Вход в Дашборд EYYA</title>
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <main class="login-page">
+      <section class="login-shell" aria-label="Вход в дашборд">
+        <div class="login-visual">
+          <img src="assets/eyya-logo.png" alt="EYYA" />
+        </div>
+        <form id="loginForm" class="login-card">
+          <div class="login-copy">
+            <p>Дашборд Bitrix</p>
+            <h1>Вход в EYYA</h1>
+            <span>Метрики клиентского отдела и маркетинга</span>
+          </div>
+          <label>
+            Логин
+            <input name="username" type="email" autocomplete="username" required />
+          </label>
+          <label>
+            Пароль
+            <input name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <p id="loginError" class="login-error" role="alert"></p>
+          <button type="submit">Войти</button>
+        </form>
+      </section>
+    </main>
+    <script src="login.js"></script>
+  </body>
+</html>

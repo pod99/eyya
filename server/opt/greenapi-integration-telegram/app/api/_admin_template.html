@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAFY Telegram Admin</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%232f2f2f'/%3E%3Cpath d='M15 19h34v19H31l-9 8v-8h-7z' fill='%23f2f0f3'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#f2f0f3;--card:#fff;--ink:#2f2f2f;--muted:#746169;--faint:#a8a8a8;
+  --line:#e0dce3;--line2:#eee9f0;--accent:#746169;--done-c:#3d6b52;--done-b:#e8f3ec;
+  --warn-c:#7a5c1e;--warn-b:#f5edda;--off-c:#7a3f3f;--off-b:#f3eaea;
+  --soft:#faf9fb;--shadow:0 4px 16px rgba(116,97,105,.08)
+}
+*{box-sizing:border-box}
+::selection{background:var(--accent);color:#fff}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif;font-weight:300;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit}
+.top{position:sticky;top:0;z-index:10;background:rgba(242,240,243,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.bar{display:flex;align-items:center;gap:16px;padding:16px 22px}
+.brand{min-width:230px}
+.brand h1{font-size:20px;line-height:1.05;margin:0;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.brand p{margin:5px 0 0;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.12em}
+.controls{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.input,.select{height:38px;border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);padding:0 11px;min-width:0}
+.input:focus,.select:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+.domain{max-width:310px;flex:1}
+.btn{height:38px;border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);padding:0 13px;cursor:pointer;font-weight:400;text-transform:uppercase;font-size:11px;letter-spacing:.08em}
+.btn:hover{border-color:#ccc8d0;box-shadow:var(--shadow)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.btn.danger{background:var(--off-c);border-color:var(--off-c);color:#fff}
+.btn.ghost{background:transparent}
+.btn.small{height:30px;padding:0 9px;font-size:10px}
+.switch{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px;white-space:nowrap;text-transform:uppercase;letter-spacing:.08em}
+.switch input{width:16px;height:16px}
+.live-badge{display:inline-flex;align-items:center;gap:6px;min-height:38px;border:1px solid var(--line);background:var(--card);border-radius:3px;padding:0 10px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.live-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--warn-c)}
+.live-badge.ok .dot{background:var(--done-c)}
+.live-badge.bad .dot{background:var(--off-c)}
+.tabs{display:flex;gap:2px;padding:0 22px;overflow:auto;border-top:1px solid rgba(224,220,227,.55)}
+.tab{height:44px;border:0;background:transparent;padding:0 14px;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-weight:400;white-space:nowrap;text-transform:uppercase;font-size:10px;letter-spacing:.11em}
+.tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+.wrap{padding:22px 22px 34px;max-width:1760px;margin:0 auto}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(8,minmax(110px,1fr))}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:3px}
+.panel:hover{border-color:#d4ced7}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border-bottom:1px solid var(--line)}
+.panel-title{margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.panel-body{padding:14px}
+.kpi{padding:14px;border-radius:3px;border:1px solid var(--line);background:var(--card);min-height:86px;transition:border-color .2s,box-shadow .2s}
+.kpi:hover{border-color:#ccc8d0;box-shadow:var(--shadow)}
+.kpi .num{font-size:26px;font-weight:700;letter-spacing:0;margin-bottom:3px;line-height:1.1}
+.kpi .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;line-height:1.45}
+.sparkline{display:block;width:100%;height:16px;margin-top:8px}
+.sparkline polyline{fill:none;stroke:currentColor;stroke-width:2;opacity:.55}
+.kpi.blue,.kpi.cyan{background:var(--soft);border-color:var(--line)}
+.kpi.green{background:var(--done-b);border-color:#d7e7dc}
+.kpi.red{background:var(--off-b);border-color:#ead3d3}
+.kpi.amber{background:var(--warn-b);border-color:#eadfbd}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.heatmap{display:grid;gap:3px;overflow:auto}
+.heatmap-row{display:grid;grid-template-columns:34px repeat(24, minmax(16px,1fr));gap:3px;align-items:center}
+.heatmap-cell{height:18px;border-radius:2px;background:var(--soft);border:1px solid var(--line2);font-size:8px;text-align:center;line-height:16px;color:var(--muted)}
+.heatmap-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.media-bars{display:grid;gap:8px}
+.media-bar{display:grid;grid-template-columns:92px 1fr 44px;gap:8px;align-items:center;font-size:12px}
+.media-track{height:8px;background:var(--soft);border:1px solid var(--line2);border-radius:99px;overflow:hidden}
+.media-fill{height:100%;background:var(--accent)}
+.mini-history{display:grid;gap:8px;max-height:360px;overflow:auto}
+.mini-msg{border:1px solid var(--line);border-radius:3px;padding:8px;background:var(--card)}
+.mini-msg.out{margin-left:24px;background:var(--soft)}
+.mini-msg.in{margin-right:24px}
+.mini-msg-head{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toolbar .input{width:240px}.toolbar .select{width:150px}
+.statusline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-flex;align-items:center;min-height:22px;border-radius:2px;padding:2px 8px;font-size:10px;font-weight:400;background:var(--soft);color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.08em}
+.ok{background:var(--done-b);color:var(--done-c)}.bad{background:var(--off-b);color:var(--off-c)}
+.warn{background:var(--warn-b);color:var(--warn-c)}.info{background:var(--soft);color:var(--accent)}
+.cyan{background:#ece8ee;color:var(--muted)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:860px}
+th,td{padding:10px 11px;border-bottom:1px solid var(--line2);vertical-align:top;text-align:left}
+th{font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--faint);background:var(--soft);position:sticky;top:0;z-index:1}
+tr:hover td{background:#fbf9fc}
+tr.clickable{cursor:pointer}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.muted{color:var(--muted)}
+.textcell{max-width:520px;white-space:pre-wrap;word-break:break-word}
+.clip{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.details{border:1px solid var(--line);border-radius:3px;background:var(--soft);padding:9px;white-space:pre-wrap;max-height:240px;overflow:auto}
+.empty{padding:22px;color:var(--muted);text-align:center}
+.split{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+.form{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:8px;align-items:end}
+.form label{display:grid;gap:5px;font-size:10px;color:var(--muted);font-weight:400;text-transform:uppercase;letter-spacing:.08em}
+.quick-list{display:grid;gap:8px}
+.quick-row{display:grid;grid-template-columns:36px minmax(160px,.6fr) minmax(260px,1.4fr) 92px 84px;gap:8px;align-items:start;border:1px solid var(--line);background:var(--soft);padding:8px;border-radius:3px}
+.quick-row textarea{min-height:70px;padding:9px 11px;border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);resize:vertical}
+.quick-row .num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);padding-top:8px}
+	.toast{position:fixed;right:16px;bottom:16px;z-index:30;display:none;max-width:460px;border-radius:3px;border:1px solid var(--line);background:var(--card);box-shadow:0 8px 28px rgba(116,97,105,.16);padding:12px}
+	.toast.show{display:block}.toast.good{border-color:#a9ddc3}.toast.err{border-color:#f3aca7}
+	.qrbox{display:none;gap:12px;align-items:center;margin-top:10px}.qrbox.show{display:flex}.qrbox img{width:180px;height:180px;border:1px solid var(--line);border-radius:3px;background:#fff}
+	.subgrid{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}
+	.health-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+	.health-checks{display:grid;gap:8px}
+	.health-check{border:1px solid var(--line);border-radius:3px;background:var(--soft);padding:10px}
+	.health-check.ok{border-color:#d7e7dc;background:var(--done-b)}
+	.health-check.warn{border-color:#eadfbd;background:var(--warn-b)}
+	.health-check.error{border-color:#ead3d3;background:var(--off-b)}
+	.health-main{display:flex;gap:8px;justify-content:space-between;align-items:flex-start}
+	.health-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+	.health-summary{margin-top:4px;color:var(--muted);font-size:12px}
+	.health-actions{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+	.health-errors{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+	.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+	.drawer-backdrop{position:fixed;inset:0;background:rgba(47,47,47,.22);z-index:20;display:none}
+.drawer-backdrop.open{display:block}
+.drawer{position:fixed;right:0;top:0;height:100vh;width:min(560px,100vw);z-index:21;background:var(--card);border-left:1px solid var(--line);box-shadow:-14px 0 38px rgba(116,97,105,.16);transform:translateX(100%);transition:transform .18s ease;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px;border-bottom:1px solid var(--line);background:var(--paper)}
+.drawer-title{margin:0;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.drawer-body{padding:18px;overflow:auto}
+.drawer-section{border:1px solid var(--line);border-radius:3px;padding:14px;margin-bottom:12px;background:var(--soft)}
+.drawer-section h3{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.12em}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;font-size:12px;margin-bottom:8px}
+.kv b{color:var(--faint);font-weight:400;text-transform:uppercase;letter-spacing:.08em}
+.drawer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.hide{display:none!important}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(4,1fr)}.split,.subgrid,.mini-grid{grid-template-columns:1fr}.form{grid-template-columns:1fr 1fr}.brand{min-width:150px}}
+@media(max-width:720px){.bar{align-items:stretch;flex-direction:column}.controls{width:100%;flex-wrap:wrap}.domain{max-width:none;flex-basis:100%}.kpis{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}.quick-row{grid-template-columns:1fr}.toolbar .input,.toolbar .select{width:100%}.toast{top:12px;right:12px;bottom:auto;left:12px;max-width:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <div class="brand"><h1>SAFY Telegram</h1><p>{{CONNECTOR_NAME}} · {{CONNECTOR_ID}}</p></div>
+    <div class="controls">
+      <select id="tenantSelect" class="select" onchange="selectTenant(this.value)"></select>
+      <input id="domainInput" class="input domain" placeholder="eyya.bitrix24.ru">
+      <button class="btn primary" onclick="connectDomain()">Открыть</button>
+      <button class="btn" onclick="refreshAll()">Обновить</button>
+      <span id="tgLiveBadge" class="live-badge"><span class="dot"></span><span>tg -/-</span></span>
+      <label class="switch"><input id="autoRefresh" type="checkbox" checked onchange="setupAutoRefresh()"> авто</label>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="overview" onclick="showTab('overview')">Обзор</button>
+	    <button class="tab" data-tab="messages" onclick="showTab('messages')">Сообщения</button>
+	    <button class="tab" data-tab="stats" onclick="showTab('stats')">Итоги</button>
+	    <button class="tab" data-tab="dialogs" onclick="showTab('dialogs')">Диалоги</button>
+	    <button class="tab" data-tab="waiting" onclick="showTab('waiting')">Ожидают ответа</button>
+	    <button class="tab" data-tab="leads" onclick="showTab('leads')">Лиды</button>
+	    <button class="tab" data-tab="quick-replies" onclick="showTab('quick-replies')">Шаблоны</button>
+	    <button class="tab" data-tab="accounts" onclick="showTab('accounts')">Аккаунты</button>
+	    <button class="tab" data-tab="errors" onclick="showTab('errors')">Ошибки</button>
+	    <button class="tab" data-tab="outbox" onclick="showTab('outbox')">Outbox</button>
+	    <button class="tab" data-tab="lines" onclick="showTab('lines')">ОЛ</button>
+	    <button class="tab" data-tab="audit" onclick="showTab('audit')">Журнал</button>
+	    <button class="tab" data-tab="backups" onclick="showTab('backups')">Бэкапы</button>
+	  </nav>
+</header>
+
+<main class="wrap">
+  <section id="tab-overview">
+    <div id="kpis" class="grid kpis"></div>
+    <div class="split" style="margin-top:12px">
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Последние сообщения</h2><button class="btn small" onclick="showTab('messages')">Все</button></div>
+        <div id="latestMessages" class="panel-body"></div>
+      </section>
+	      <section class="panel">
+	        <div class="panel-head"><h2 class="panel-title">Диагностика</h2><button class="btn small" onclick="loadHealth(true)">Проверить</button></div>
+	        <div id="healthBox" class="panel-body"></div>
+	      </section>
+    </div>
+    <div class="mini-grid">
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Когда пишут клиенты</h2></div>
+        <div id="heatmapBox" class="panel-body"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Типы сообщений</h2></div>
+        <div id="mediaDistributionBox" class="panel-body"></div>
+      </section>
+    </div>
+  </section>
+
+  <section id="tab-messages" class="hide">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Сообщения</h2>
+        <div class="toolbar">
+          <input id="msgSearch" class="input" placeholder="поиск" onkeydown="if(event.key==='Enter')loadMessages()">
+          <input id="msgDateFrom" class="input" type="date" title="Дата с" onchange="loadMessages()">
+          <input id="msgDateTo" class="input" type="date" title="Дата по" onchange="loadMessages()">
+          <select id="msgOperator" class="select" onchange="loadMessages()"><option value="">оператор</option></select>
+          <input id="msgClient" class="input" placeholder="клиент" onkeydown="if(event.key==='Enter')loadMessages()">
+          <select id="msgDirection" class="select" onchange="loadMessages()"><option value="">направление</option><option value="inbound">Telegram -> Bitrix24</option><option value="outbound">Bitrix24 -> Telegram</option></select>
+          <select id="msgStatus" class="select" onchange="loadMessages()"><option value="">статус</option><option>sent</option><option>queued</option><option>pending</option><option>failed</option><option>no_link</option></select>
+          <select id="msgMediaType" class="select" onchange="loadMessages()"><option value="">тип медиа</option><option value="text">текст</option><option value="photo">фото</option><option value="voice">голосовые</option><option value="sticker">стикеры</option><option value="file">файлы</option><option value="video">видео</option><option value="video_note">кружочки</option></select>
+          <button class="btn" onclick="loadMessages()">Фильтр</button>
+          <button class="btn" onclick="exportMessages()">CSV</button>
+        </div>
+      </div>
+      <div id="messagesTable" class="table-wrap"></div>
+    </section>
+  </section>
+
+  <section id="tab-stats" class="hide">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Итоги по операторам</h2>
+        <div class="toolbar">
+          <input id="statsDateFrom" class="input" type="date" title="Дата с">
+          <input id="statsDateTo" class="input" type="date" title="Дата по">
+          <select id="statsOperator" class="select"><option value="">оператор</option></select>
+          <input id="statsClient" class="input" placeholder="клиент">
+          <button class="btn primary" onclick="loadOperatorStats()">Показать</button>
+        </div>
+      </div>
+      <div id="operatorTotals" class="panel-body"></div>
+      <div id="operatorDays" class="table-wrap"></div>
+    </section>
+  </section>
+
+	  <section id="tab-dialogs" class="hide">
+	    <section class="panel">
+	      <div class="panel-head">
+	        <h2 class="panel-title">Диалоги</h2>
+        <div class="toolbar"><input id="dialogSearch" class="input" placeholder="клиент или chat id" onkeydown="if(event.key==='Enter')loadDialogs()"><button class="btn" onclick="loadDialogs()">Найти</button></div>
+      </div>
+      <div id="dialogsTable" class="table-wrap"></div>
+	    </section>
+	  </section>
+
+	  <section id="tab-waiting" class="hide">
+	    <section class="panel">
+	      <div class="panel-head">
+	        <h2 class="panel-title">Ожидают ответа</h2>
+	        <div class="toolbar"><button class="btn" onclick="loadWaiting()">Обновить</button></div>
+	      </div>
+	      <div id="waitingTable" class="table-wrap"></div>
+	    </section>
+	  </section>
+
+	  <section id="tab-leads" class="hide">
+	    <section class="panel">
+	      <div class="panel-head">
+	        <h2 class="panel-title">Аудит лидов</h2>
+	        <div class="toolbar">
+	          <select id="leadStatus" class="select" onchange="loadLeads()">
+	            <option value="">все</option>
+	            <option value="without_lead">без лида</option>
+	            <option value="with_lead">с лидом</option>
+	            <option value="can_create">можно создать</option>
+	          </select>
+	          <input id="leadSearch" class="input" placeholder="клиент, чат, lead id" onkeydown="if(event.key==='Enter')loadLeads()">
+	          <button class="btn" onclick="loadLeads()">Показать</button>
+	        </div>
+	      </div>
+	      <div id="leadTotals" class="panel-body"></div>
+	      <div id="leadsTable" class="table-wrap"></div>
+	    </section>
+	  </section>
+
+	  <section id="tab-quick-replies" class="hide">
+	    <section class="panel">
+	      <div class="panel-head">
+	        <h2 class="panel-title">Быстрые ответы</h2>
+	        <div class="toolbar">
+	          <button class="btn" onclick="addQuickReply()">Добавить</button>
+	          <button class="btn primary" onclick="saveQuickReplies()">Сохранить</button>
+	        </div>
+	      </div>
+	      <div class="panel-body">
+	        <div class="muted" style="margin-bottom:10px">До 35 активных шаблонов. Они появятся кнопками в виджете Bitrix.</div>
+	        <div id="quickRepliesList" class="quick-list"></div>
+	      </div>
+	    </section>
+	  </section>
+
+	  <section id="tab-accounts" class="hide">
+    <div class="subgrid">
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Telegram аккаунты</h2><button class="btn small" onclick="startAllAccounts()">Запустить все</button></div>
+        <div id="accountsTable" class="table-wrap"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Подключение</h2></div>
+        <div class="panel-body">
+          <div class="form">
+            <label>API ID<input id="tgApiId" class="input" inputmode="numeric"></label>
+            <label>API Hash<input id="tgApiHash" class="input"></label>
+            <label>Телефон<input id="tgPhone" class="input" placeholder="+79990000000"></label>
+            <div><button class="btn primary" onclick="startQr()">QR</button> <button class="btn" onclick="startPhone()">SMS</button></div>
+          </div>
+          <div id="qrBox" class="qrbox"><img id="qrImg" alt=""><div><div id="qrState" class="badge info">QR</div></div></div>
+          <div class="form" style="margin-top:10px">
+            <label>Login key<input id="phoneLoginKey" class="input"></label>
+            <label>Код<input id="phoneCode" class="input"></label>
+            <label>2FA пароль<input id="phonePassword" class="input" type="password" autocomplete="current-password"></label>
+            <div><button class="btn" onclick="completePhone()">Код</button> <button class="btn" onclick="completePhonePassword()">2FA</button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section id="tab-errors" class="hide">
+    <div class="subgrid">
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Ошибки сообщений</h2><button class="btn small" onclick="loadErrors()">Обновить</button></div>
+        <div id="messageErrors" class="table-wrap"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Ошибки outbox</h2></div>
+        <div id="outboxErrors" class="table-wrap"></div>
+      </section>
+    </div>
+  </section>
+
+  <section id="tab-outbox" class="hide">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Outbox</h2>
+        <div class="toolbar"><select id="outboxStatus" class="select" onchange="loadOutbox()"><option value="">статус</option><option>pending</option><option>processing</option><option>sent</option><option>failed</option></select><button class="btn" onclick="loadOutbox()">Обновить</button></div>
+      </div>
+      <div id="outboxCounts" class="panel-body"></div>
+      <div id="outboxTable" class="table-wrap"></div>
+    </section>
+  </section>
+
+	  <section id="tab-lines" class="hide">
+	    <section class="panel">
+	      <div class="panel-head"><h2 class="panel-title">Открытые линии</h2><button class="btn" onclick="loadLines()">Загрузить</button></div>
+	      <div id="linesTable" class="table-wrap"></div>
+	    </section>
+	  </section>
+
+	  <section id="tab-audit" class="hide">
+	    <section class="panel">
+	      <div class="panel-head">
+	        <h2 class="panel-title">Журнал действий</h2>
+	        <div class="toolbar"><input id="auditSearch" class="input" placeholder="поиск" onkeydown="if(event.key==='Enter')loadAudit()"><button class="btn" onclick="loadAudit()">Обновить</button></div>
+	      </div>
+	      <div id="auditTable" class="table-wrap"></div>
+	    </section>
+	  </section>
+
+	  <section id="tab-backups" class="hide">
+	    <div class="subgrid">
+	      <section class="panel">
+	        <div class="panel-head"><h2 class="panel-title">Бэкапы базы</h2><div class="toolbar"><button class="btn primary" onclick="createBackup()">Создать</button><button class="btn" onclick="loadBackups()">Обновить</button></div></div>
+	        <div id="backupTable" class="table-wrap"></div>
+	      </section>
+	      <section class="panel">
+	        <div class="panel-head"><h2 class="panel-title">Уведомления</h2><button class="btn small" onclick="testNotification()">Тест</button></div>
+	        <div id="notificationBox" class="panel-body"></div>
+	      </section>
+	    </div>
+	  </section>
+	</main>
+
+<div id="toast" class="toast"></div>
+<div id="drawerBackdrop" class="drawer-backdrop" onclick="closeDrawer()"></div>
+<aside id="drawer" class="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <h2 id="drawerTitle" class="drawer-title">Детали</h2>
+    <button class="btn small" onclick="closeDrawer()">Закрыть</button>
+  </div>
+  <div id="drawerBody" class="drawer-body"></div>
+</aside>
+
+<script>
+var currentDomain = localStorage.getItem("safy_admin_domain") || "";
+var currentTab = "overview";
+var autoTimer = null;
+var lastHealthAt = 0;
+var state = { messageLists:{}, dialogs:[], waiting:[], leads:[], quickReplies:[], operators:[], days:[], operatorOptions:[], health:null };
+
+function esc(value){
+  return String(value == null ? "" : value)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+function short(value, n){ value=String(value||""); return value.length>n ? value.slice(0,n)+"..." : value; }
+function dt(value){ if(!value)return ""; return String(value).replace("T"," ").replace("+00:00","").slice(0,19); }
+function badge(text, kind){ return '<span class="badge '+(kind||'')+'">'+esc(text)+'</span>'; }
+function statusKind(s){ return s==="sent"||s===true ? "ok" : s==="failed"||s===false ? "bad" : s==="queued"||s==="pending"||s==="processing" ? "warn" : "info"; }
+function arg(value){ return encodeURIComponent(String(value == null ? "" : value)); }
+function mediaLabel(kind){
+  return ({text:"текст",photo:"фото",voice:"голос",sticker:"стикер",file:"файл",video:"видео",video_note:"кружок"})[kind]||kind||"текст";
+}
+function fmtMinutes(value){
+  if(value==null||value==="")return "-";
+  value=Number(value);
+  if(!Number.isFinite(value))return "-";
+  if(value<60)return value.toFixed(value%1?1:0)+" мин";
+  return (value/60).toFixed(value<600?1:0)+" ч";
+}
+function toast(text, good){
+  var el=document.getElementById("toast");
+  el.textContent=text; el.className="toast show "+(good?"good":"err");
+  setTimeout(function(){el.className="toast";},4200);
+}
+async function api(url, opts){
+  opts=opts||{};
+  if(opts.method && !/^(GET|HEAD)$/i.test(opts.method)){
+    opts.headers=Object.assign({"X-SAFY-Admin-Action":"1"}, opts.headers||{});
+  }
+  var r=await fetch(url, opts);
+  var text=await r.text();
+  var data={};
+  try{data=JSON.parse(text);}catch(e){data={success:false,message:text||r.statusText};}
+  if(!r.ok) throw new Error(data.message||data.error||r.statusText);
+  return data;
+}
+async function postJson(url, body){
+  return api(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})});
+}
+function openDrawer(title, html){
+  document.getElementById("drawerTitle").textContent=title;
+  document.getElementById("drawerBody").innerHTML=html;
+  document.getElementById("drawerBackdrop").classList.add("open");
+  var drawer=document.getElementById("drawer");
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden","false");
+}
+function closeDrawer(){
+  document.getElementById("drawerBackdrop").classList.remove("open");
+  var drawer=document.getElementById("drawer");
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden","true");
+}
+function kv(label,value){
+  return '<div class="kv"><b>'+esc(label)+'</b><span>'+esc(value==null||value===""?"-":value)+'</span></div>';
+}
+function preBlock(value){
+  return '<pre class="details">'+esc(typeof value==="string"?value:JSON.stringify(value,null,2))+'</pre>';
+}
+
+function showTab(name){
+  currentTab=name;
+  document.querySelectorAll("main > section").forEach(function(s){s.classList.add("hide");});
+  document.getElementById("tab-"+name).classList.remove("hide");
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("active", t.dataset.tab===name);});
+  refreshCurrent();
+}
+function setDomain(domain){
+  currentDomain=(domain||"").trim();
+  document.getElementById("domainInput").value=currentDomain;
+  localStorage.setItem("safy_admin_domain", currentDomain);
+}
+function selectTenant(domain){ if(domain){setDomain(domain); refreshAll();} }
+function connectDomain(){ setDomain(document.getElementById("domainInput").value); refreshAll(); }
+async function updateLiveBadge(){
+  var badgeEl=document.getElementById("tgLiveBadge");
+  if(!badgeEl)return;
+  if(!currentDomain){
+    badgeEl.className="live-badge";
+    badgeEl.querySelector("span:last-child").textContent="tg -/-";
+    return;
+  }
+  try{
+    var d=await api("/api/admin/accounts?domain="+encodeURIComponent(currentDomain));
+    var rows=d.accounts||[];
+    var listening=rows.filter(function(a){return a.is_listening;}).length;
+    badgeEl.className="live-badge "+(listening>0?"ok":(rows.length?"":"bad"));
+    badgeEl.querySelector("span:last-child").textContent="tg "+listening+"/"+rows.length;
+  }catch(e){
+    badgeEl.className="live-badge bad";
+    badgeEl.querySelector("span:last-child").textContent="tg error";
+  }
+}
+
+async function loadTenants(){
+  var d=await api("/api/admin/tenants");
+  var sel=document.getElementById("tenantSelect");
+  sel.innerHTML='<option value="">портал</option>'+(d.tenants||[]).map(function(t){
+    return '<option value="'+esc(t.domain)+'">'+esc(t.domain)+'</option>';
+  }).join("");
+  if(!currentDomain && d.tenants && d.tenants[0]) setDomain(d.tenants[0].domain);
+  sel.value=currentDomain;
+}
+
+function setOperatorSelect(id, name){
+  var el=document.getElementById(id);
+  if(!el)return;
+  name=name||"";
+  if(name && !Array.from(el.options).some(function(o){return o.value===name;})){
+    el.insertAdjacentHTML("beforeend", '<option value="'+esc(name)+'">'+esc(name)+'</option>');
+  }
+  el.value=name;
+}
+async function loadOperators(){
+  if(!currentDomain)return;
+  var d=await api("/api/admin/operators?domain="+encodeURIComponent(currentDomain));
+  state.operatorOptions=d.operators||[];
+  ["msgOperator","statsOperator"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el)return;
+    var selected=el.value;
+    el.innerHTML='<option value="">оператор</option>'+state.operatorOptions.map(function(o){
+      return '<option value="'+esc(o.name)+'">'+esc(o.name)+' · '+esc(o.total||0)+'</option>';
+    }).join("");
+    if(selected) setOperatorSelect(id, selected);
+  });
+}
+
+function sparkline(values){
+  values=Array.isArray(values)?values.map(function(v){return Number(v)||0;}):[];
+  if(values.length<2)return "";
+  var max=Math.max.apply(null,values.concat([1]));
+  var step=100/(values.length-1);
+  var pts=values.map(function(v,i){
+    var x=Math.round(i*step);
+    var y=Math.round(15-(v/max)*14);
+    return x+","+y;
+  }).join(" ");
+  return '<svg class="sparkline" viewBox="0 0 100 16" preserveAspectRatio="none"><polyline points="'+pts+'"></polyline></svg>';
+}
+function kpi(label,num,kind,trend){ return '<div class="kpi '+kind+'"><div class="num">'+esc(num)+'</div><div class="label">'+esc(label)+'</div>'+sparkline(trend)+'</div>'; }
+function renderHeatmap(data){
+  var box=document.getElementById("heatmapBox");
+  if(!box)return;
+  var days=(data&&data.days)||[];
+  var values=(data&&data.values)||[];
+  var max=1;
+  values.forEach(function(row){(row||[]).forEach(function(v){max=Math.max(max,Number(v)||0);});});
+  var rows='<div class="heatmap-row"><span></span>';
+  for(var h=0;h<24;h++) rows+='<span class="heatmap-label">'+h+'</span>';
+  rows+='</div>';
+  values.forEach(function(row,idx){
+    rows+='<div class="heatmap-row"><span class="heatmap-label">'+esc(days[idx]||"")+'</span>';
+    for(var h=0;h<24;h++){
+      var value=Number((row||[])[h])||0;
+      var alpha=value?(.12+.68*(value/max)):0;
+      rows+='<span class="heatmap-cell" title="'+esc((days[idx]||"")+" "+h+":00 - "+value)+'" style="background:rgba(116,97,105,'+alpha.toFixed(3)+')">'+(value||"")+'</span>';
+    }
+    rows+='</div>';
+  });
+  box.innerHTML='<div class="heatmap">'+rows+'</div>';
+}
+function renderMediaDistribution(dist){
+  var box=document.getElementById("mediaDistributionBox");
+  if(!box)return;
+  dist=dist||{};
+  var order=["text","photo","voice","sticker","file","video","video_note"];
+  var max=1;
+  order.forEach(function(k){max=Math.max(max,Number(dist[k])||0);});
+  box.innerHTML='<div class="media-bars">'+order.map(function(k){
+    var value=Number(dist[k])||0;
+    var pct=Math.round((value/max)*100);
+    return '<div class="media-bar"><span>'+esc(mediaLabel(k))+'</span><span class="media-track"><span class="media-fill" style="width:'+pct+'%"></span></span><b class="mono">'+esc(value)+'</b></div>';
+  }).join("")+'</div>';
+}
+function healthKind(status){ return status==="ok" ? "ok" : status==="error" ? "bad" : "warn"; }
+function healthAction(check){
+  var code=check.code;
+  var details=check.details||{};
+  var actions=[];
+  if(code==="tenant_token" && check.status!=="ok") actions.push('<button class="btn small" onclick="refreshToken()">Token</button>');
+  if(code==="telegram_accounts") actions.push('<button class="btn small" onclick="startAllAccounts()">Запустить</button>','<button class="btn small" onclick="showTab(\'accounts\')">Аккаунты</button>');
+  if(code==="messages") actions.push('<button class="btn small" onclick="showTab(\'errors\')">Ошибки</button>');
+  if(code==="outbox"){
+    if((details.statuses&&details.statuses.failed)||0) actions.push('<button class="btn small" onclick="retryFailedOutbox()">Retry failed</button>');
+    actions.push('<button class="btn small" onclick="showTab(\'outbox\')">Outbox</button>');
+  }
+  if(code==="events"){
+    if(check.status!=="ok") actions.push('<button class="btn small" onclick="rebindEvents()">Rebind</button>');
+    actions.push('<button class="btn small" onclick="showTab(\'lines\')">ОЛ</button>');
+  }
+  if(code==="open_line"||code==="connector") actions.push('<button class="btn small" onclick="showTab(\'lines\')">ОЛ</button>');
+  if(code==="chat_links"){
+    if(Number(details.empty_orphan_links||0)>0) actions.push('<button class="btn small" onclick="cleanupEmptyLinks()">Очистить пустые</button>');
+    actions.push('<button class="btn small" onclick="showTab(\'dialogs\')">Диалоги</button>');
+    actions.push('<button class="btn small" onclick="showTab(\'leads\')">Лиды</button>');
+  }
+  return actions.join("");
+}
+function renderHealth(d){
+  state.health=d;
+  var checks=d.checks||[];
+  var overall=d.overall||"warn";
+  var accountText=((d.telegram_accounts||[]).filter(function(a){return a.is_listening;}).length)+"/"+((d.telegram_accounts||[]).length);
+  var top='<div class="health-top"><div><div class="statusline">'+
+    badge("система "+overall,healthKind(overall))+
+    badge("line "+((d.primary&&d.primary.line_id)||"-"),"cyan")+
+    badge("connector "+((d.primary&&d.primary.connector_id)||"-"),"info")+
+    badge("tg "+accountText,accountText.indexOf("0/")===0?"warn":"ok")+
+    '</div><div class="muted mono" style="margin-top:6px">'+esc(dt(d.generated_at))+'</div></div>'+
+    '<button class="btn small" onclick="loadHealth(true)">Обновить</button></div>';
+  var body=checks.map(function(c){
+    var action=healthAction(c);
+    var details=c.action?'<div class="muted" style="margin-top:5px">'+esc(c.action)+'</div>':"";
+    return '<div class="health-check '+esc(c.status==='error'?'error':c.status)+'">'+
+      '<div class="health-main"><div><div class="health-title">'+esc(c.title||c.code)+'</div><div class="health-summary">'+esc(c.summary||"")+'</div>'+details+'</div>'+
+      badge(c.status||"-",healthKind(c.status))+'</div>'+
+      (action?'<div class="health-actions">'+action+'</div>':"")+
+      '</div>';
+  }).join("");
+  var msgErrors=(d.errors&&d.errors.messages)||[];
+  state.messageLists.healthErrors=msgErrors;
+  var errors="";
+  if(msgErrors.length){
+    errors='<div class="health-errors"><div class="panel-title" style="margin-bottom:8px">Последние ошибки</div>'+
+      msgErrors.slice(0,4).map(function(m,idx){
+        return '<div class="health-check warn clickable" onclick="openMessage(\'healthErrors\','+idx+',event)">'+
+          '<div class="health-title">#'+esc(m.id)+' · '+esc(m.status)+'</div>'+
+          '<div class="health-summary">'+esc(short(m.author||m.sender_name||"",34))+' → '+esc(short(m.target||"",34))+'</div>'+
+          '<div class="muted">'+esc(short(m.error||m.text||"",120))+'</div></div>';
+      }).join("")+'</div>';
+  }
+  var outboxErrors=(d.errors&&d.errors.outbox)||[];
+  if(outboxErrors.length){
+    errors+='<div class="health-errors"><div class="panel-title" style="margin-bottom:8px">Ошибки outbox</div>'+
+      outboxErrors.slice(0,4).map(function(e){
+        return '<div class="health-check warn"><div class="health-title">#'+esc(e.id)+' · '+esc(e.direction)+'</div>'+
+          '<div class="health-summary">'+esc(short(e.last_error||"",140))+'</div>'+
+          '<div class="health-actions"><button class="btn small" onclick="retryOutbox('+Number(e.id)+')">Retry</button><button class="btn small" onclick="skipOutbox('+Number(e.id)+')">Skip</button></div></div>';
+      }).join("")+'</div>';
+  }
+  document.getElementById("healthBox").innerHTML=top+'<div class="health-checks">'+body+'</div>'+errors;
+}
+async function loadHealth(force){
+  if(!currentDomain)return;
+  var nowTs=Date.now();
+  if(!force && state.health && nowTs-lastHealthAt<60000){ renderHealth(state.health); return; }
+  document.getElementById("healthBox").innerHTML='<div class="empty">Проверяю цепочку...</div>';
+  var d=await api("/api/admin/health?domain="+encodeURIComponent(currentDomain));
+  lastHealthAt=Date.now();
+  renderHealth(d);
+}
+async function loadOverview(){
+  if(!currentDomain)return;
+  var d=await api("/api/admin/overview?domain="+encodeURIComponent(currentDomain));
+  var c=d.counts||{};
+  var t=d.trends||{};
+  var waitKind=(Number(c.waiting_over_30||0)>0 || Number(c.waiting_max_minutes||0)>=30)?"red":(Number(c.waiting_dialogs||0)>0?"amber":"green");
+  document.getElementById("kpis").innerHTML=[
+    kpi("сообщений",c.messages||0,"blue",t.messages),kpi("за 24 часа",c.messages_24h||0,"cyan",t.messages),
+    kpi("в Bitrix",c.inbound||0,"green",t.inbound),kpi("в Telegram",c.outbound||0,"green",t.outbound),
+    kpi("ошибок",Number(c.failed||0)+Number(c.no_link||0),"red",t.errors),
+    kpi("ждут ответа > "+(c.waiting_threshold_minutes||30)+" мин",c.waiting_over_30||0,waitKind),
+    kpi("диалогов",c.dialogs||0,"blue",t.dialogs),
+    kpi("повторных за 7 дней",c.repeat_clients_7d||0,"cyan"),
+    kpi("outbox",c.outbox_pending||0,"amber"),
+    kpi("аккаунтов",String(c.active_accounts||0)+"/"+String(c.accounts||0),"cyan")
+  ].join("");
+  renderHeatmap(d.heatmap||{});
+  renderMediaDistribution(d.media_distribution||{});
+  renderMessages("latestMessages", d.latest_messages||[], true);
+  await loadHealth(false);
+}
+
+function renderMessages(targetId, messages, compact){
+  state.messageLists[targetId]=messages||[];
+  if(!messages.length){document.getElementById(targetId).innerHTML='<div class="empty">Нет сообщений</div>';return;}
+  var html='<table><thead><tr><th>Время</th><th>Автор</th><th>Куда</th><th>Статус</th><th>Сообщение</th><th>Файлы</th><th>ID</th><th></th></tr></thead><tbody>';
+  messages.forEach(function(m,idx){
+    var files=(m.files||[]).map(function(f){return badge(f.name||"file","cyan");}).join(" ");
+    var media=badge(mediaLabel(m.media_type||"text"),m.media_type&&m.media_type!=="text"?"info":"");
+    var text=esc(compact?short(m.text,110):m.text);
+    var err=m.error?'<div class="bad details">'+esc(m.error)+'</div>':"";
+    var author = esc(m.author||"-");
+    if(m.operator){ author='<button class="btn small ghost" onclick="drillOperator(decodeURIComponent(\''+arg(m.operator)+'\'),event)">'+esc(m.operator)+'</button>'; }
+    html+='<tr class="clickable" onclick="openMessage(\''+targetId+'\','+idx+',event)"><td class="mono">'+dt(m.created_at)+'</td><td>'+author+'<div class="muted">'+esc(m.direction_label||m.direction)+'</div></td><td>'+esc(m.target||"-")+'<div class="muted mono">'+esc(m.bitrix_chat_id||m.telegram_chat_id||"")+'</div></td><td>'+badge(m.status,statusKind(m.status))+'</td><td class="textcell">'+media+' '+(text||'<span class="muted">пусто</span>')+err+'</td><td>'+ (files||'<span class="muted">-</span>') +'</td><td class="mono">#'+esc(m.id)+'<br>'+esc(m.bitrix_message_id||m.provider_message_id||"")+'</td><td><button class="btn small" onclick="openMessage(\''+targetId+'\','+idx+',event)">Открыть</button></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById(targetId).innerHTML=html;
+}
+function messageHtml(m, raw){
+  var files=(m.files||[]).map(function(f){
+    return '<div>'+badge(f.name||"file","cyan")+' <span class="muted">'+esc(f.type||"")+' '+esc(f.size||"")+'</span></div>';
+  }).join("") || '<span class="muted">нет файлов</span>';
+  var actions='<div class="drawer-actions">';
+  if(m.operator) actions+='<button class="btn primary" onclick="drillOperator(decodeURIComponent(\''+arg(m.operator)+'\'))">Оператор</button>';
+	  if(m.external_user_name||m.external_chat_id||m.recipient) actions+='<button class="btn" onclick="drillClient(decodeURIComponent(\''+arg(m.external_user_name||m.external_chat_id||m.recipient)+'\'))">Клиент</button>';
+	  if(m.chat_link_id) actions+='<button class="btn" onclick="openDialogById('+Number(m.chat_link_id)+')">Диалог</button>';
+	  if(m.chat_link_id) actions+='<button class="btn" onclick="openTrace('+Number(m.chat_link_id)+')">Trace</button>';
+	  actions+='</div>';
+  return '<div class="drawer-section"><h3>Сообщение</h3>'+
+    kv("ID","#"+m.id)+kv("Время",dt(m.created_at))+kv("Автор",m.author)+kv("Тип",m.direction_label||m.direction)+kv("Статус",m.status)+
+    kv("Куда",m.target)+kv("Оператор",m.operator||"")+kv("Медиа",mediaLabel(m.media_type||"text"))+kv("Источник",m.source||"")+
+    '<div class="details">'+esc(m.text||"")+'</div>'+actions+'</div>'+
+    '<div class="drawer-section"><h3>Файлы</h3>'+files+'</div>'+
+    '<div class="drawer-section"><h3>Связи</h3>'+
+    kv("ChatLink",m.chat_link_id)+kv("Telegram chat",m.telegram_chat_id||m.external_chat_id)+kv("Bitrix chat",m.bitrix_chat_id)+kv("Bitrix msg",m.bitrix_message_id)+kv("Provider msg",m.provider_message_id)+kv("Линия",m.bitrix_line_id)+
+    kv("CRM",m.crm_entity_id?((m.crm_entity_type||"crm")+" #"+m.crm_entity_id):"")+
+    '</div>'+
+    (m.error?'<div class="drawer-section"><h3>Ошибка</h3>'+preBlock(m.error)+'</div>':"")+
+    (raw?'<div class="drawer-section"><h3>Raw payload</h3>'+preBlock(raw)+'</div>':"");
+}
+async function openMessage(targetId, idx, ev){
+  if(ev)ev.stopPropagation();
+  var list=state.messageLists[targetId]||[];
+  var m=list[idx]; if(!m)return;
+  openDrawer("Сообщение #"+m.id, messageHtml(m));
+  try{
+    var d=await api("/api/admin/message/"+encodeURIComponent(m.id)+"?domain="+encodeURIComponent(currentDomain));
+    if(d.success&&d.message) openDrawer("Сообщение #"+m.id, messageHtml(d.message,d.message.raw_payload));
+  }catch(e){toast(e.message,false);}
+}
+function messageFilterParams(limit){
+  var p=new URLSearchParams({domain:currentDomain,limit:String(limit||200)});
+  var q=document.getElementById("msgSearch").value.trim();
+  var dir=document.getElementById("msgDirection").value;
+  var st=document.getElementById("msgStatus").value;
+  var dateFrom=document.getElementById("msgDateFrom").value;
+  var dateTo=document.getElementById("msgDateTo").value;
+  var operator=document.getElementById("msgOperator").value.trim();
+  var client=document.getElementById("msgClient").value.trim();
+  var mediaType=document.getElementById("msgMediaType").value;
+  if(q)p.set("q",q); if(dir)p.set("direction",dir); if(st)p.set("status",st);
+  if(dateFrom)p.set("date_from",dateFrom); if(dateTo)p.set("date_to",dateTo);
+  if(operator)p.set("operator",operator); if(client)p.set("client",client);
+  if(mediaType)p.set("media_type",mediaType);
+  return p;
+}
+async function loadMessages(){
+  if(!currentDomain)return;
+  var p=messageFilterParams(200);
+  var d=await api("/api/admin/messages?"+p.toString());
+  renderMessages("messagesTable",d.messages||[],false);
+}
+function exportMessages(){
+  if(!currentDomain)return;
+  var p=messageFilterParams(5000);
+  window.open("/api/admin/messages/export.csv?"+p.toString(),"_blank");
+}
+
+async function loadOperatorStats(){
+  if(!currentDomain)return;
+  var p=new URLSearchParams({domain:currentDomain});
+  var dateFrom=document.getElementById("statsDateFrom").value;
+  var dateTo=document.getElementById("statsDateTo").value;
+  var operator=document.getElementById("statsOperator").value.trim();
+  var client=document.getElementById("statsClient").value.trim();
+  if(dateFrom)p.set("date_from",dateFrom); if(dateTo)p.set("date_to",dateTo);
+  if(operator)p.set("operator",operator); if(client)p.set("client",client);
+  var d=await api("/api/admin/operator-stats?"+p.toString());
+  var totals=d.operators||[];
+  state.operators=totals;
+  if(!totals.length){
+    document.getElementById("operatorTotals").innerHTML='<div class="empty">Нет ответов операторов за выбранный период</div>';
+    document.getElementById("operatorDays").innerHTML='';
+    return;
+  }
+  var cards=totals.map(function(x,idx){
+    var failKind=x.failed>0?"red":"green";
+    return '<div class="kpi '+failKind+' clickable" onclick="openOperator('+idx+')"><div class="num">'+esc(x.sent)+'/'+esc(x.total)+'</div><div class="label">'+esc(x.operator)+' · мед. ответ '+esc(fmtMinutes(x.median_response_minutes))+' · клиентов '+esc(x.clients)+' · файлов '+esc(x.files)+'</div></div>';
+  }).join("");
+  document.getElementById("operatorTotals").innerHTML='<div class="grid kpis">'+cards+'</div>';
+  var rows=d.days||[];
+  state.days=rows;
+  var html='<table><thead><tr><th>Дата</th><th>Оператор</th><th>Ответов</th><th>Успешно</th><th>Ошибок</th><th>Клиентов</th><th>Файлов</th><th>Среднее</th><th>Медиана</th><th></th></tr></thead><tbody>';
+  rows.forEach(function(x,idx){
+    html+='<tr class="clickable" onclick="openOperatorDay('+idx+')"><td class="mono">'+esc(x.day)+'</td><td>'+esc(x.operator)+'</td><td>'+esc(x.total)+'</td><td>'+badge(x.sent,"ok")+'</td><td>'+badge(x.failed,x.failed>0?"bad":"ok")+'</td><td>'+esc(x.clients)+'</td><td>'+esc(x.files)+'</td><td>'+esc(fmtMinutes(x.avg_response_minutes))+'</td><td>'+esc(fmtMinutes(x.median_response_minutes))+'</td><td><button class="btn small" onclick="openOperatorDay('+idx+',event)">Открыть</button></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById("operatorDays").innerHTML=html;
+}
+
+function operatorHtml(x, day){
+  var title=day?("День "+day):"Период";
+  return '<div class="drawer-section"><h3>Оператор</h3>'+
+    kv("Имя",x.operator)+kv(title,"ответов "+x.total)+kv("Успешно",x.sent)+kv("Ошибок",x.failed)+kv("Клиентов",x.clients)+kv("Файлов",x.files)+kv("Среднее время ответа",fmtMinutes(x.avg_response_minutes))+kv("Медиана ответа",fmtMinutes(x.median_response_minutes))+kv("Ответов для расчета",x.response_count||0)+
+    '<div class="drawer-actions">'+
+    '<button class="btn primary" onclick="drillOperator(decodeURIComponent(\''+arg(x.operator)+'\'))">Открыть сообщения</button>'+
+    '<button class="btn" onclick="showTab(\'stats\')">Итоги</button>'+
+    '</div></div>';
+}
+function openOperator(idx){
+  var x=state.operators[idx]; if(!x)return;
+  openDrawer("Оператор", operatorHtml(x));
+}
+function openOperatorDay(idx, ev){
+  if(ev)ev.stopPropagation();
+  var x=state.days[idx]; if(!x)return;
+  openDrawer("Оператор за день", operatorHtml(x,x.day));
+}
+function drillOperator(name, ev){
+  if(ev)ev.stopPropagation();
+  setOperatorSelect("msgOperator", name);
+  document.getElementById("msgDirection").value="outbound";
+  setOperatorSelect("statsOperator", name);
+  showTab("messages");
+  loadMessages();
+}
+function drillClient(value){
+  document.getElementById("msgClient").value=value||"";
+  document.getElementById("dialogSearch").value=value||"";
+  showTab("messages");
+  loadMessages();
+}
+
+async function loadDialogs(){
+  if(!currentDomain)return;
+  var p=new URLSearchParams({domain:currentDomain});
+  var q=document.getElementById("dialogSearch").value.trim(); if(q)p.set("q",q);
+  var d=await api("/api/admin/dialogs?"+p.toString());
+  var rows=d.dialogs||[];
+  state.dialogs=rows;
+  if(!rows.length){document.getElementById("dialogsTable").innerHTML='<div class="empty">Нет диалогов</div>';return;}
+  var html='<table><thead><tr><th>Клиент</th><th>Telegram</th><th>Bitrix</th><th>CRM</th><th>Линия</th><th>Сообщения</th><th>Без ответа</th><th>Последнее</th><th></th></tr></thead><tbody>';
+  rows.forEach(function(x,idx){
+    var crm=x.crm_entity_id?badge((x.crm_entity_type||"crm")+" #"+x.crm_entity_id,"ok"):badge("нет","warn");
+    var wait=(x.unanswered_count||0)>0 ? badge(x.unanswered_count,(x.long_wait?"bad":"warn"))+(x.unanswered_wait_minutes?(" "+badge(x.unanswered_wait_minutes+" мин",x.long_wait?"bad":"warn")):"") : badge(0,"ok");
+    html+='<tr class="clickable" onclick="openDialog('+idx+')"><td>'+esc(x.name||"-")+'</td><td class="mono">'+esc(x.external_chat_id||"")+'</td><td class="mono">'+esc(x.bitrix_chat_id||"")+'</td><td>'+crm+'</td><td>'+badge(x.bitrix_line_id||"-","info")+'</td><td>'+esc(x.message_count||0)+'</td><td>'+wait+'</td><td class="textcell">'+esc(short(x.latest_text||"",120))+'<div class="muted">'+dt(x.last_message_at)+'</div></td><td><button class="btn small" onclick="openDialog('+idx+',event)">Открыть</button></td></tr>';
+  });
+  html+='</tbody></table>'; document.getElementById("dialogsTable").innerHTML=html;
+}
+function renderWaitingRows(rows){
+  rows=(rows||[]).filter(function(x){return x.needs_reply && x.latest_direction==="inbound";})
+    .sort(function(a,b){return Number(b.unanswered_wait_minutes||0)-Number(a.unanswered_wait_minutes||0);});
+  state.waiting=rows;
+  if(!rows.length){document.getElementById("waitingTable").innerHTML='<div class="empty">Сейчас никто не ждет ответа</div>';return;}
+  var html='<table><thead><tr><th>Ждет</th><th>Клиент</th><th>Telegram</th><th>Bitrix</th><th>Сообщений</th><th>Последнее</th><th></th></tr></thead><tbody>';
+  rows.forEach(function(x,idx){
+    var kind=Number(x.unanswered_wait_minutes||0)>=30?"bad":"warn";
+    html+='<tr class="clickable" onclick="openWaitingDialog('+idx+')"><td>'+badge((x.unanswered_wait_minutes||0)+" мин",kind)+'<div class="muted">'+esc(x.unanswered_count||0)+' входящих</div></td><td>'+esc(x.name||"-")+'</td><td class="mono">'+esc(x.external_chat_id||"")+'</td><td class="mono">'+esc(x.bitrix_chat_id||"")+'</td><td>'+esc(x.message_count||0)+'</td><td class="textcell">'+badge(mediaLabel(x.latest_media_type||"text"),"info")+' '+esc(short(x.latest_text||"",140))+'<div class="muted">'+dt(x.last_message_at)+'</div></td><td><button class="btn small" onclick="openWaitingDialog('+idx+',event)">Открыть</button></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById("waitingTable").innerHTML=html;
+}
+async function loadWaiting(){
+  if(!currentDomain)return;
+  var d=await api("/api/admin/dialogs?domain="+encodeURIComponent(currentDomain));
+  renderWaitingRows(d.dialogs||[]);
+}
+function dialogHtml(x){
+  var client=x.name||x.external_chat_id||"";
+  return '<div class="drawer-section"><h3>Диалог</h3>'+
+    kv("Клиент",client)+kv("Telegram chat",x.external_chat_id)+kv("Telegram user",x.external_user_id)+kv("Bitrix chat",x.bitrix_chat_id)+kv("Dialog ID",x.bitrix_dialog_id)+kv("CRM",x.crm_entity_id?((x.crm_entity_type||"crm")+" #"+x.crm_entity_id):"")+kv("Линия",x.bitrix_line_id)+kv("Канал",x.channel_name||x.channel_id)+kv("Сообщений",x.message_count)+kv("Без ответа",x.unanswered_count||0)+kv("Ждет минут",x.unanswered_wait_minutes||0)+kv("Последнее",dt(x.last_message_at))+
+    '<div class="drawer-actions">'+
+	    '<button class="btn primary" onclick="openDialogMessages('+Number(x.id)+',decodeURIComponent(\''+arg(client)+'\'))">История</button>'+
+	    '<button class="btn" onclick="drillClient(decodeURIComponent(\''+arg(client)+'\'))">Клиент</button>'+
+	    '<button class="btn" onclick="openTrace('+Number(x.id)+')">Trace</button>'+
+	    '</div></div>'+
+    '<div class="drawer-section"><h3>Последнее сообщение</h3><div class="details">'+esc(x.latest_text||"")+'</div>'+badge(x.latest_direction||"-","info")+' '+badge(x.latest_status||"-",statusKind(x.latest_status))+'</div>'+
+    '<div class="drawer-section"><h3>История</h3><div id="dialogHistoryBox" class="mini-history"><div class="empty">Загружаю историю...</div></div></div>';
+}
+function openDialog(idx, ev){
+  if(ev)ev.stopPropagation();
+  var x=state.dialogs[idx]; if(!x)return;
+  openDrawer("Диалог", dialogHtml(x));
+  loadDialogHistory(x.id);
+}
+function openWaitingDialog(idx, ev){
+  if(ev)ev.stopPropagation();
+  var x=state.waiting[idx]; if(!x)return;
+  openDrawer("Ожидает ответа", dialogHtml(x));
+  loadDialogHistory(x.id);
+}
+function openDialogById(id){
+  var idx=(state.dialogs||[]).findIndex(function(x){return Number(x.id)===Number(id);});
+  if(idx>=0){openDialog(idx);return;}
+  document.getElementById("dialogSearch").value=String(id);
+  showTab("dialogs");
+  loadDialogs();
+}
+function openDialogMessages(id, client){
+  document.getElementById("msgClient").value=client||"";
+  showTab("messages");
+  var p=new URLSearchParams({domain:currentDomain,limit:"300",chat_link_id:String(id)});
+  api("/api/admin/messages?"+p.toString()).then(function(d){renderMessages("messagesTable",d.messages||[],false);}).catch(function(e){toast(e.message,false);});
+}
+async function loadDialogHistory(id){
+  var box=document.getElementById("dialogHistoryBox");
+  if(!box)return;
+  try{
+    var p=new URLSearchParams({domain:currentDomain,limit:"80",chat_link_id:String(id)});
+    var d=await api("/api/admin/messages?"+p.toString());
+    var rows=(d.messages||[]).slice().reverse();
+    state.messageLists.dialogHistory=rows;
+    if(!rows.length){box.innerHTML='<div class="empty">Сообщений нет</div>';return;}
+    box.innerHTML=rows.map(function(m,idx){
+      var dir=m.direction==="outbound"?"out":"in";
+      return '<div class="mini-msg '+dir+' clickable" onclick="openMessage(\'dialogHistory\','+idx+',event)">'+
+        '<div class="mini-msg-head"><span>'+esc(m.author||m.sender_name||m.direction)+'</span><span>'+dt(m.created_at)+'</span></div>'+
+        '<div class="textcell">'+badge(mediaLabel(m.media_type||"text"),"info")+' '+esc(m.text||"")+'</div>'+
+        ((m.files||[]).length?'<div style="margin-top:5px">'+(m.files||[]).map(function(f){return badge(f.name||"file","cyan");}).join(" ")+'</div>':"")+
+        '</div>';
+    }).join("");
+    box.scrollTop=box.scrollHeight;
+  }catch(e){
+    box.innerHTML='<div class="empty">Не удалось загрузить историю: '+esc(e.message)+'</div>';
+  }
+}
+
+async function loadLeads(){
+  if(!currentDomain)return;
+  var p=new URLSearchParams({domain:currentDomain,limit:"250"});
+  var status=document.getElementById("leadStatus").value;
+  var q=document.getElementById("leadSearch").value.trim();
+  if(status)p.set("status",status); if(q)p.set("q",q);
+  var d=await api("/api/admin/leads-audit?"+p.toString());
+  var totals=d.totals||{};
+  document.getElementById("leadTotals").innerHTML='<div class="statusline">'+
+    badge("всего "+(totals.total||0),"info")+
+    badge("с лидом "+(totals.with_lead||0),"ok")+
+    badge("без лида "+(totals.without_lead||0),(totals.without_lead||0)?"warn":"ok")+
+    badge("можно создать "+(totals.can_create||0),(totals.can_create||0)?"warn":"ok")+
+    '</div>';
+  var rows=d.rows||[];
+  state.leads=rows;
+  if(!rows.length){document.getElementById("leadsTable").innerHTML='<div class="empty">Нет диалогов</div>';return;}
+  var html='<table><thead><tr><th>Клиент</th><th>Чат ОЛ</th><th>Лид</th><th>Сообщения</th><th>Последнее</th><th>Действия</th></tr></thead><tbody>';
+  rows.forEach(function(x,idx){
+    var chat=x.chat_url?'<a href="'+esc(x.chat_url)+'" target="_blank" rel="noopener">'+esc(x.bitrix_chat_id)+'</a>':esc(x.bitrix_chat_id||"-");
+    var lead=x.lead_url?'<a href="'+esc(x.lead_url)+'" target="_blank" rel="noopener">'+badge("lead #"+x.crm_entity_id,"ok")+'</a>':badge("нет","warn");
+    var actions='<button class="btn small" onclick="openLeadDialog('+idx+')">Открыть</button> ';
+    if(x.can_create_lead) actions+='<button class="btn small primary" onclick="createLeadForDialog('+Number(x.id)+',false)">Создать лид</button> ';
+    if(x.can_create_lead) actions+='<button class="btn small" onclick="createLeadForDialog('+Number(x.id)+',true)">Нативно</button> ';
+    if(x.has_lead && x.bitrix_chat_id) actions+='<button class="btn small" onclick="addOpenLineNote('+Number(x.id)+')">Заметка</button> ';
+    html+='<tr class="clickable" onclick="openLeadDialog('+idx+')"><td>'+esc(x.client||"-")+'<div class="muted mono">'+esc(x.external_chat_id||"")+'</div></td><td class="mono">'+chat+'</td><td>'+lead+'</td><td>'+esc(x.message_count||0)+'</td><td class="textcell">'+esc(short(x.latest_text||"",120))+'<div class="muted">'+dt(x.latest_at)+'</div></td><td>'+actions+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById("leadsTable").innerHTML=html;
+}
+function leadDialogHtml(x){
+  return '<div class="drawer-section"><h3>Лид и открытая линия</h3>'+
+    kv("Клиент",x.client)+kv("Telegram chat",x.external_chat_id)+kv("Bitrix chat",x.bitrix_chat_id)+kv("Лид",x.crm_entity_id?((x.crm_entity_type||"lead")+" #"+x.crm_entity_id):"")+kv("Сообщений",x.message_count)+kv("Последнее",dt(x.latest_at))+
+    '<div class="drawer-actions">'+
+    (x.lead_url?'<a class="btn primary" href="'+esc(x.lead_url)+'" target="_blank" rel="noopener">Лид</a>':"")+
+    (x.chat_url?'<a class="btn" href="'+esc(x.chat_url)+'" target="_blank" rel="noopener">Чат</a>':"")+
+    (x.can_create_lead?'<button class="btn primary" onclick="createLeadForDialog('+Number(x.id)+',false)">Создать лид</button>':"")+
+    (x.can_create_lead?'<button class="btn" onclick="createLeadForDialog('+Number(x.id)+',true)">Нативно</button>':"")+
+    (x.has_lead&&x.bitrix_chat_id?'<button class="btn" onclick="addOpenLineNote('+Number(x.id)+')">Добавить заметку</button>':"")+
+    '<button class="btn" onclick="openTrace('+Number(x.id)+')">Trace</button>'+
+    '</div></div>'+
+    '<div class="drawer-section"><h3>Первое сообщение</h3><div class="details">'+esc(x.first_text||"")+'</div></div>'+
+    '<div class="drawer-section"><h3>Последнее сообщение</h3><div class="details">'+esc(x.latest_text||"")+'</div>'+badge(x.latest_status||"-",statusKind(x.latest_status))+'</div>';
+}
+async function loadQuickReplies(){
+  if(!currentDomain)return;
+  var d=await api("/api/admin/quick-replies?domain="+encodeURIComponent(currentDomain));
+  state.quickReplies=(d.templates||[]).map(function(x){return {title:x.title||"",text:x.text||"",active:x.active!==false};});
+  renderQuickReplies();
+}
+function renderQuickReplies(){
+  var rows=state.quickReplies||[];
+  var box=document.getElementById("quickRepliesList");
+  if(!box)return;
+  if(!rows.length){box.innerHTML='<div class="empty">Шаблонов пока нет</div>';return;}
+  box.innerHTML=rows.map(function(x,idx){
+    return '<div class="quick-row">'+
+      '<div class="num">#'+(idx+1)+'</div>'+
+      '<input class="input" maxlength="120" placeholder="Название кнопки" value="'+esc(x.title||"")+'" oninput="state.quickReplies['+idx+'].title=this.value">'+
+      '<textarea maxlength="4096" placeholder="Текст ответа" oninput="state.quickReplies['+idx+'].text=this.value">'+esc(x.text||"")+'</textarea>'+
+      '<label class="switch"><input type="checkbox" '+(x.active!==false?'checked':'')+' onchange="state.quickReplies['+idx+'].active=this.checked"> активен</label>'+
+      '<button class="btn small" onclick="removeQuickReply('+idx+')">Удалить</button>'+
+      '</div>';
+  }).join("");
+}
+function addQuickReply(){
+  state.quickReplies=state.quickReplies||[];
+  if(state.quickReplies.length>=35){toast("Максимум 35 шаблонов",false);return;}
+  state.quickReplies.push({title:"",text:"",active:true});
+  renderQuickReplies();
+}
+function removeQuickReply(idx){
+  state.quickReplies.splice(idx,1);
+  renderQuickReplies();
+}
+async function saveQuickReplies(){
+  if(!currentDomain)return;
+  var payload=(state.quickReplies||[]).map(function(x){return {title:x.title||"",text:x.text||"",active:x.active!==false};});
+  var d=await postJson("/api/admin/quick-replies",{domain:currentDomain,templates:payload});
+  state.quickReplies=(d.templates||[]).map(function(x){return {title:x.title||"",text:x.text||"",active:x.active!==false};});
+  renderQuickReplies();
+  toast(d.message||"Шаблоны сохранены",!!d.success);
+}
+function openLeadDialog(idx, ev){
+  if(ev)ev.stopPropagation();
+  var x=state.leads[idx]; if(!x)return;
+  openDrawer("Лид / диалог", leadDialogHtml(x));
+}
+async function createLeadForDialog(id, native){
+  var label=native?"Создать нативный лид через ОЛ? Если Bitrix не вернет ID, база не будет изменена.":"Создать лид для диалога?";
+  if(!confirm(label))return;
+  var d=await postJson("/api/admin/actions/create-lead-for-dialog",{domain:currentDomain,chat_link_id:id,native:!!native});
+  toast(d.message||"Lead",!!d.success);
+  loadLeads(); loadDialogs(); loadHealth(true);
+}
+async function addOpenLineNote(id){
+  var d=await postJson("/api/admin/actions/add-openline-note",{domain:currentDomain,chat_link_id:id});
+  toast(d.message||"Note",!!d.success);
+  loadLeads();
+}
+async function openTrace(id){
+  var d=await api("/api/admin/trace/"+encodeURIComponent(id)+"?domain="+encodeURIComponent(currentDomain));
+  if(!d.success){toast(d.message||"Trace error",false);return;}
+  var dialog=d.dialog||{};
+  var msgs=d.messages||[];
+  var outbox=d.outbox||[];
+  var html='<div class="drawer-section"><h3>Цепочка</h3>'+
+    kv("Клиент",dialog.client)+kv("Telegram chat",dialog.external_chat_id)+kv("Bitrix chat",dialog.bitrix_chat_id)+kv("Лид",dialog.crm_entity_id?((dialog.crm_entity_type||"lead")+" #"+dialog.crm_entity_id):"")+
+    '<div class="drawer-actions">'+
+    (dialog.lead_url?'<a class="btn primary" href="'+esc(dialog.lead_url)+'" target="_blank" rel="noopener">Лид</a>':"")+
+    (dialog.chat_url?'<a class="btn" href="'+esc(dialog.chat_url)+'" target="_blank" rel="noopener">Чат</a>':"")+
+    '</div></div>';
+  html+='<div class="drawer-section"><h3>Сообщения</h3><div class="details">'+esc(JSON.stringify(msgs.map(function(m){return {id:m.id,dir:m.direction,status:m.status,tg:m.provider_message_id,bx:m.bitrix_message_id,text:short(m.text,80)};}),null,2))+'</div></div>';
+  html+='<div class="drawer-section"><h3>Outbox</h3><div class="details">'+esc(JSON.stringify(outbox.map(function(e){return {id:e.id,status:e.status,attempts:e.attempts,error:e.last_error};}),null,2))+'</div></div>';
+  openDrawer("Trace dialog #"+id, html);
+}
+
+async function loadAccounts(){
+  if(!currentDomain)return;
+  var d=await api("/api/admin/accounts?domain="+encodeURIComponent(currentDomain));
+  var rows=d.accounts||[];
+  if(!rows.length){document.getElementById("accountsTable").innerHTML='<div class="empty">Нет аккаунтов</div>';return;}
+  var html='<table><thead><tr><th>ID</th><th>Аккаунт</th><th>Линия</th><th>Состояние</th><th>Действия</th></tr></thead><tbody>';
+  rows.forEach(function(a){
+    html+='<tr><td class="mono">#'+esc(a.id)+'</td><td>'+esc(a.username?("@"+a.username):(a.phone||"-"))+'<div class="muted mono">api '+esc(a.api_id)+'</div></td><td>'+esc(a.bitrix_line_id||"-")+'<div class="muted">'+esc(a.bitrix_connector_id||"")+'</div></td><td>'+badge(a.state,statusKind(a.state==="active"||a.state==="authorized"))+' '+badge(a.is_listening?"listening":"offline",a.is_listening?"ok":"warn")+'</td><td><button class="btn small" onclick="connectAccount('+a.id+')">Линия</button></td></tr>';
+  });
+  html+='</tbody></table>'; document.getElementById("accountsTable").innerHTML=html;
+}
+async function startAllAccounts(){
+  var d=await api("/api/telegram/start-all",{method:"POST"});
+  toast("Запущено: "+(d.started||0),true);
+  loadAccounts();
+  loadHealth(true);
+}
+async function connectAccount(id){
+  var line=prompt("ID открытой линии", "30"); if(!line)return;
+  var d=await api("/api/telegram/connect",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:currentDomain,account_id:id,line_id:Number(line)})});
+  toast(d.message||"Аккаунт подключен",!!d.success); loadAccounts(); loadOverview();
+}
+async function startQr(){
+  var apiId=Number(document.getElementById("tgApiId").value.trim());
+  var apiHash=document.getElementById("tgApiHash").value.trim();
+  var d=await api("/api/telegram/login/qr",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:currentDomain,api_id:apiId,api_hash:apiHash})});
+  if(!d.success){toast(d.message||d.error||"Ошибка QR",false);return;}
+  document.getElementById("qrBox").classList.add("show");
+  document.getElementById("qrImg").src="/api/telegram/qr-image/"+encodeURIComponent(d.login_key);
+  document.getElementById("qrState").textContent="ожидание";
+  pollQr(d.login_key,d.account_id);
+}
+function pollQr(key,accountId){
+  var n=0;
+  var timer=setInterval(async function(){
+    n++; if(n>80){clearInterval(timer);document.getElementById("qrState").textContent="истёк";return;}
+    var d=await api("/api/telegram/login/check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({login_key:key,account_id:accountId})});
+    if(d.status==="authorized"){clearInterval(timer);document.getElementById("qrState").textContent="готово";toast("Telegram подключен",true);loadAccounts();}
+    if(d.status==="expired"){clearInterval(timer);document.getElementById("qrState").textContent="истёк";}
+  },3000);
+}
+async function startPhone(){
+  var body={domain:currentDomain,api_id:Number(document.getElementById("tgApiId").value.trim()),api_hash:document.getElementById("tgApiHash").value.trim(),phone:document.getElementById("tgPhone").value.trim()};
+  var d=await api("/api/telegram/login/phone",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(d.success){document.getElementById("phoneLoginKey").value=d.login_key;document.getElementById("phoneLoginKey").dataset.accountId=d.account_id||"";toast("Код отправлен",true);}else toast(d.message||d.error||"Ошибка",false);
+}
+async function completePhone(){
+  var keyInput=document.getElementById("phoneLoginKey");
+  var body={login_key:keyInput.value.trim(),account_id:Number(keyInput.dataset.accountId||0),code:document.getElementById("phoneCode").value.trim()};
+  var d=await api("/api/telegram/login/code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(d.password_required){toast("Введите 2FA пароль Telegram",false);document.getElementById("phonePassword").focus();return;}
+  toast(d.success?"Telegram подключен":(d.error||"Ошибка"),!!d.success); loadAccounts();
+}
+async function completePhonePassword(){
+  var keyInput=document.getElementById("phoneLoginKey");
+  var body={login_key:keyInput.value.trim(),account_id:Number(keyInput.dataset.accountId||0),password:document.getElementById("phonePassword").value};
+  var d=await api("/api/telegram/login/password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  toast(d.success?"Telegram подключен":(d.error||"Ошибка 2FA"),!!d.success); if(d.success)loadAccounts();
+}
+
+async function loadErrors(){
+  var d=await api("/api/admin/errors?domain="+encodeURIComponent(currentDomain));
+  renderMessages("messageErrors",d.messages||[],false);
+  renderOutboxTable("outboxErrors",d.outbox||[]);
+}
+async function loadOutbox(){
+  var st=document.getElementById("outboxStatus").value;
+  var p=new URLSearchParams({limit:"120"}); if(st)p.set("status",st);
+  var d=await api("/api/admin/outbox?"+p.toString());
+  var c=d.counts||{};
+  document.getElementById("outboxCounts").innerHTML='<div class="statusline">'+badge("sent "+(c.sent||0),"ok")+badge("pending "+(c.pending||0),"warn")+badge("processing "+(c.processing||0),"warn")+badge("failed "+(c.failed||0),"bad")+'</div>';
+  renderOutboxTable("outboxTable",d.entries||[]);
+}
+function renderOutboxTable(target, rows){
+  if(!rows.length){document.getElementById(target).innerHTML='<div class="empty">Нет записей</div>';return;}
+  var html='<table><thead><tr><th>ID</th><th>Статус</th><th>Попытки</th><th>Ошибка</th><th>Payload</th><th>Время</th><th></th></tr></thead><tbody>';
+  rows.forEach(function(e){
+    var actions=e.status==="failed"?'<button class="btn small" onclick="retryOutbox('+e.id+')">retry</button> <button class="btn small" onclick="skipOutbox('+e.id+')">skip</button>':'';
+    html+='<tr><td class="mono">#'+esc(e.id)+'</td><td>'+badge(e.status,statusKind(e.status))+'</td><td>'+esc(e.attempts)+'/'+esc(e.max_retries)+'</td><td class="textcell">'+esc(e.last_error||"")+'</td><td><pre class="details">'+esc(JSON.stringify(e.payload,null,2))+'</pre></td><td class="mono">'+dt(e.created_at)+'<br>'+dt(e.updated_at)+'</td><td>'+actions+'</td></tr>';
+  });
+  html+='</tbody></table>'; document.getElementById(target).innerHTML=html;
+}
+async function retryOutbox(id){var d=await api("/api/outbox/retry/"+id,{method:"POST"});toast(d.message||"Retry",!!d.success);loadOutbox();loadErrors();loadHealth(true);}
+async function skipOutbox(id){
+  if(!confirm("Пометить outbox #"+id+" как skipped?"))return;
+  var d=await api("/api/admin/actions/skip-outbox/"+id,{method:"POST"});
+  toast(d.message||"Skipped",!!d.success);loadOutbox();loadErrors();loadHealth(true);
+}
+async function retryFailedOutbox(){
+  var d=await postJson("/api/admin/actions/retry-failed-outbox",{limit:50});
+  toast(d.message||"Retry failed",!!d.success);loadOutbox();loadErrors();loadHealth(true);
+}
+async function rebindEvents(){
+  var d=await postJson("/api/admin/actions/rebind-events",{domain:currentDomain});
+  toast(d.message||"Events checked",!!d.success);loadHealth(true);
+}
+async function cleanupEmptyLinks(){
+  if(!confirm("Удалить пустые связки без сообщений, Bitrix chat и лида?"))return;
+  var d=await postJson("/api/admin/actions/cleanup-empty-links",{domain:currentDomain});
+  toast(d.message||"Cleanup",!!d.success);loadDialogs();loadHealth(true);
+}
+async function refreshToken(){
+  var d=await postJson("/api/admin/refresh-token",{domain:currentDomain});
+  toast((d.refreshed&&d.refreshed.length?"Token refreshed":"Token check complete"),!d.errors||!d.errors.length);loadHealth(true);
+}
+
+async function loadLines(){
+  if(!currentDomain)return;
+  var d=await api("/api/open-lines/"+encodeURIComponent(currentDomain));
+  var lines=Array.isArray(d.lines)?d.lines:((d.lines&&d.lines.LINES)||[]);
+  if(!lines.length){document.getElementById("linesTable").innerHTML='<div class="empty">Нет данных по ОЛ</div>';return;}
+  var html='<table><thead><tr><th>ID</th><th>Название</th><th>Активна</th><th></th></tr></thead><tbody>';
+  lines.forEach(function(l){
+    var id=l.ID||l.id; var name=l.LINE_NAME||l.NAME||l.name||("Line "+id); var active=l.ACTIVE||l.active;
+    html+='<tr><td class="mono">'+esc(id)+'</td><td>'+esc(name)+'</td><td>'+badge(String(active),active==="Y"||active===true?"ok":"warn")+'</td><td><button class="btn small" onclick="activateLine('+Number(id)+')">Подключить</button></td></tr>';
+  });
+  html+='</tbody></table>'; document.getElementById("linesTable").innerHTML=html;
+}
+async function activateLine(id){
+  var d=await api("/api/activate-line",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:currentDomain,line_id:id})});
+  toast(d.message||"Готово",!!d.success); loadOverview();
+}
+
+async function loadAudit(){
+  var q=document.getElementById("auditSearch").value.trim();
+  var p=new URLSearchParams({limit:"250"}); if(q)p.set("q",q);
+  var d=await api("/api/admin/audit-log?"+p.toString());
+  var rows=d.logs||[];
+  if(!rows.length){document.getElementById("auditTable").innerHTML='<div class="empty">Журнал пуст</div>';return;}
+  var html='<table><thead><tr><th>Время</th><th>Кто</th><th>Метод</th><th>Путь</th><th>Статус</th><th>Детали</th></tr></thead><tbody>';
+  rows.forEach(function(x){
+    html+='<tr><td class="mono">'+dt(x.created_at)+'</td><td>'+esc(x.actor||"-")+'<div class="muted mono">'+esc(x.ip||"")+'</div></td><td>'+badge(x.method,"info")+'</td><td class="textcell">'+esc(x.path||"")+'<div class="muted">'+esc(x.action||"")+'</div></td><td>'+badge(x.status_code||"-",Number(x.status_code)<400?"ok":"bad")+'</td><td><pre class="details">'+esc(JSON.stringify(x.details||{},null,2))+'</pre></td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById("auditTable").innerHTML=html;
+}
+async function loadBackups(){
+  var d=await api("/api/admin/backups");
+  var rows=d.backups||[];
+  var note='Хранение '+esc(d.retention_days||0)+' дней';
+  if(!rows.length){document.getElementById("backupTable").innerHTML='<div class="empty">Бэкапов пока нет<br>'+note+'</div>';}else{
+    var html='<table><thead><tr><th>Файл</th><th>Размер</th><th>Создан</th><th></th></tr></thead><tbody>';
+    rows.forEach(function(x){
+      html+='<tr><td class="mono">'+esc(x.name)+'</td><td>'+esc(Math.round((x.size||0)/1024))+' KB</td><td class="mono">'+dt(x.created_at)+'</td><td><a class="btn small" href="/api/admin/backups/download/'+encodeURIComponent(x.name)+'">Скачать</a></td></tr>';
+    });
+    html+='</tbody></table><div class="panel-body muted">'+note+'</div>';
+    document.getElementById("backupTable").innerHTML=html;
+  }
+  var n=await api("/api/admin/notifications");
+  document.getElementById("notificationBox").innerHTML='<div class="statusline">'+
+    badge(n.configured?"настроены":"не настроены",n.configured?"ok":"warn")+
+    badge("webhook "+String(n.webhook),n.webhook?"ok":"warn")+
+    badge("telegram "+String(n.telegram),n.telegram?"ok":"warn")+
+    badge("interval "+String(n.interval_seconds||0)+"s","info")+
+    '</div>';
+}
+async function createBackup(){
+  var d=await postJson("/api/admin/backups/create",{});
+  toast(d.success?"Бэкап создан":"Ошибка бэкапа",!!d.success); loadBackups();
+}
+async function testNotification(){
+  var d=await postJson("/api/admin/notifications/test",{});
+  toast(d.message||"Notification",!!d.success); loadBackups();
+}
+
+async function refreshCurrent(){
+  try{
+    await updateLiveBadge();
+    if(currentTab==="overview")await loadOverview();
+    if(currentTab==="messages")await loadMessages();
+    if(currentTab==="stats")await loadOperatorStats();
+    if(currentTab==="dialogs")await loadDialogs();
+    if(currentTab==="waiting")await loadWaiting();
+    if(currentTab==="leads")await loadLeads();
+    if(currentTab==="quick-replies")await loadQuickReplies();
+    if(currentTab==="accounts")await loadAccounts();
+    if(currentTab==="errors")await loadErrors();
+    if(currentTab==="outbox")await loadOutbox();
+    if(currentTab==="lines")await loadLines();
+    if(currentTab==="audit")await loadAudit();
+    if(currentTab==="backups")await loadBackups();
+  }catch(e){toast(e.message,false);}
+}
+async function refreshAll(){ if(!currentDomain)return; await updateLiveBadge(); await loadOperators(); await refreshCurrent(); }
+function setupAutoRefresh(){
+  if(autoTimer)clearInterval(autoTimer);
+  if(document.getElementById("autoRefresh").checked){autoTimer=setInterval(refreshCurrent,10000);}
+}
+document.addEventListener("keydown",function(ev){
+  var tag=(ev.target&&ev.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea"||tag==="select"||ev.metaKey||ev.ctrlKey||ev.altKey)return;
+  if(ev.key&&ev.key.toLowerCase()==="r"){
+    ev.preventDefault();
+    refreshCurrent();
+  }
+});
+
+(async function init(){
+  try{await loadTenants();}catch(e){}
+  document.getElementById("domainInput").value=currentDomain;
+  var today=new Date().toISOString().slice(0,10);
+  ["statsDateFrom","statsDateTo"].forEach(function(id){
+    var el=document.getElementById(id); if(el&&!el.value)el.value=today;
+  });
+  if(currentDomain){ await updateLiveBadge(); await loadOperators(); await loadOverview(); }
+  setupAutoRefresh();
+})();
+</script>
+</body>
+</html>
