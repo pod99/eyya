@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+venv
+data
+__pycache__
+*.pyc
+.pytest_cache
+check_*.py
+fix_*.py
+send_media_test.py
+test_reply.json
+app/api/*.bak
